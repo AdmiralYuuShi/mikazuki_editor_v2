@@ -1,33 +1,71 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:palette_generator/palette_generator.dart';
+import 'dart:typed_data';
 
-import '../../widgets/slider_widget.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:widgets_to_image/widgets_to_image.dart';
+import 'package:universal_html/html.dart' as html;
+
 import '../../widgets/widgets.dart';
-import 'widgets/spotify_design_form.dart';
+import 'spotify_design_form_page.dart';
 
 class SpotifyDesignPage extends StatefulWidget {
-  const SpotifyDesignPage({super.key});
+  final KeychainDesignData designData;
+  const SpotifyDesignPage({super.key, required this.designData});
 
   @override
   State<SpotifyDesignPage> createState() => _SpotifyDesignPageState();
 }
 
 class _SpotifyDesignPageState extends State<SpotifyDesignPage> {
-  late KeychainDesignData designData;
+  WidgetsToImageController imageController = WidgetsToImageController();
 
-  @override
-  void initState() {
-    designData = KeychainDesignData.init().copyWith(
-      title: '泥濘鳴鳴',
-      artist: 'CoMETIK',
-      spotifyUrl: 'https://open.spotify.com/track/6liJqMNGkVPJMjmwEjkrpB',
-      youtubeUrl: 'https://music.youtube.com/watch?v=CuRIuFRD1zI&si=Qjc_MzwyDBY4bZ2g',
-      coverUrl: 'https://i.scdn.co/image/ab67616d0000b27382a2b6bdfbcc2dbf29ab3748',
-      titleFontSize: 0.5,
-      artistFontSize: 0.5,
+  Future<void> saveImage(String? filename, Uint8List bytes) async {
+    if (kIsWeb) {
+      final blob = html.Blob([bytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor =
+          html.document.createElement('a') as html.AnchorElement
+            ..href = url
+            ..style.display = 'none'
+            ..download = '${filename == null || filename.isEmpty ? 'kasih nama kek' : filename}.png';
+      html.document.body?.children.add(anchor);
+      anchor.click();
+      html.Url.revokeObjectUrl(url);
+      // final File image = await File('screenshots/$screenshotName.png').create(recursive: true);
+      // image.writeAsBytesSync(screenshotBytes);
+
+      // File('my_image.jpg').writeAsBytes(bodyBytes);
+    } else {
+      // await Gal.putImageBytes(bytes, album: 'Mikazuki', name: filename ?? 'kasih nama kek');
+
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Text('Saved to Pictures/Mikazuki/$filename'),
+      //     action: SnackBarAction(
+      //       label: 'OK',
+      //       onPressed: () {
+      //         // Code to execute.
+      //       },
+      //     ),
+      //   ),
+      // );
+    }
+  }
+
+  void showSnackbar(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        action: SnackBarAction(
+          label: 'OK',
+          onPressed: () {
+            // Code to execute.
+          },
+        ),
+      ),
     );
-    super.initState();
   }
 
   @override
@@ -35,69 +73,57 @@ class _SpotifyDesignPageState extends State<SpotifyDesignPage> {
     double designWidth = 320;
     double designHeight = 490;
 
-    return Scaffold(
-      body: Row(
-        children: [
-          if (MediaQuery.of(context).size.width > 304 * 3)
-            Container(
-              width: 304,
-              decoration: BoxDecoration(border: Border(right: BorderSide())),
-              child: Column(
-                children: [
-                  SizedBox(height: 20),
-                  Text('MIKAZUKI EDITOR'),
-                  SizedBox(height: 20),
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        ListTile(title: Text('Spotify Design'), onTap: () {}, selected: true),
-                        ListTile(title: Text('Youtube Design'), onTap: () {}),
-                        ListTile(title: Text('T-Shirt Design'), onTap: () {}),
-                        Padding(padding: const EdgeInsets.all(16.0), child: Text(designData.toString())),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    color: designData.dominantColor ?? Colors.white,
+    return Stack(
+      alignment: AlignmentDirectional.center,
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: WidgetsToImage(
+            controller: imageController,
+            child: Stack(
+              alignment: AlignmentDirectional.center,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(top: 290.0, right: 46, left: 16, bottom: 32),
+                  child: Container(
                     height: designHeight,
                     width: designWidth,
+                    decoration: BoxDecoration(
+                      color: widget.designData.dominantColor ?? Colors.white,
+                      border: Border.all(
+                        width: 16,
+                        strokeAlign: BorderSide.strokeAlignOutside,
+                        color: const Color.fromARGB(255, 210, 210, 210),
+                      ),
+                    ),
                     child: Column(
                       children: [
-                        ImageNetworkWidget(imageUrl: designData.coverUrl),
+                        ImageNetworkWidget(imageUrl: widget.designData.coverUrl),
                         ImageNetworkWidget(
                           imageUrl:
-                              'https://scannables.scdn.co/uri/plain/jpeg/${(designData.dominantColor ?? Colors.white).toSpotifyColor}/${designData.spotifyBarcodeBlack ? 'black' : 'white'}/640/spotify:track:${parseSpotifyUrl(designData.spotifyUrl)}',
+                              'https://scannables.scdn.co/uri/plain/jpeg/${(widget.designData.dominantColor ?? Colors.white).toSpotifyColor}/${widget.designData.spotifyBarcodeBlack ? 'black' : 'white'}/640/spotify:track:${parseSpotifyUrl(widget.designData.spotifyUrl)}',
                         ),
                         SizedBox(
-                          height: 80 * (designData.titleFontSize),
+                          height: 80 * (widget.designData.titleFontSize),
                           child: FittedBox(
                             fit: BoxFit.fitHeight,
                             child: Text(
-                              designData.title,
+                              widget.designData.title,
                               style: TextStyle(
-                                color: designData.textColor ?? Colors.black,
+                                color: widget.designData.textColor ?? Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ),
                         SizedBox(
-                          height: 80 * (designData.artistFontSize),
+                          height: 80 * (widget.designData.artistFontSize),
                           child: FittedBox(
                             fit: BoxFit.fitHeight,
                             child: Text(
-                              designData.artist,
+                              widget.designData.artist,
                               style: GoogleFonts.bebasNeue(
-                                color: designData.textColor ?? Colors.black,
+                                color: widget.designData.textColor ?? Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -106,48 +132,83 @@ class _SpotifyDesignPageState extends State<SpotifyDesignPage> {
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(border: Border(left: BorderSide())),
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              height: MediaQuery.of(context).size.height,
-              child: Column(
-                children: [
-                  SizedBox(height: 20),
-                  Text('Spotify Design Editor'),
-                  SizedBox(height: 20),
-                  Expanded(
-                    child: SpotifyDesignForm(
-                      initData: designData,
-                      onUpdate: (data) async {
-                        print('ON UPDATE = GET');
-                        KeychainDesignData updatedData = data;
-                        setState(() {
-                          designData = updatedData;
-                        });
-                      },
+                ),
+                Positioned(
+                  top: 248,
+                  left: 164,
+                  child: Center(
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          width: 14,
+                          strokeAlign: BorderSide.strokeAlignOutside,
+                          color: const Color.fromARGB(255, 210, 210, 210),
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ElevatedButton(onPressed: () {}, child: Text('Save')),
-                      SizedBox(width: 16),
-                      ElevatedButton(onPressed: () {}, child: Text('Download')),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                ],
-              ),
+                ),
+                Positioned(
+                  left: 136,
+                  top: 10,
+                  child: ImageAssetWidget(width: 260, height: 260, path: 'assets/img/keychain_ring.png'),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 20,
+          child: Column(
+            children: [
+              IconButton(
+                onPressed: () async {
+                  EasyLoading.show(status: 'Downloading...');
+                  final result = await imageController.capture();
+                  if (result != null) {
+                    await saveImage(DateTime.now().millisecondsSinceEpoch.toString(), result);
+                  }
+                  EasyLoading.dismiss();
+                  showSnackbar('Downloaded');
+                },
+                icon: Icon(Icons.download),
+              ),
+              IconButton(
+                onPressed: () {
+                  _showLogs('LOGSSSS');
+                },
+                icon: Icon(Icons.list_alt),
+              ),
+              SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showLogs(String logs) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          contentPadding: const EdgeInsets.fromLTRB(20.0, 12.0, 20.0, 16.0),
+          title: const Text('Details'),
+          children: <Widget>[
+            Text(widget.designData.toString()),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -161,7 +222,7 @@ extension HexColor on Color {
   ///
   /// The [hexString] should be in the format "aabbcc" or "ffaabbcc" with an
   /// optional leading "#". Returns `null` if the input is `null` or invalid.
-  static Color? fromHex(String? hexString) {
+  static Color? toColor(String? hexString) {
     if (hexString == null) {
       return null;
     }

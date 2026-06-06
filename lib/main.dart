@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
+import 'src/presentation/pages/home/home_page.dart';
 import 'src/presentation/pages/spotify_design/spotify_design_page.dart';
 
 void main() {
@@ -13,9 +15,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      builder: EasyLoading.init(),
+      title: 'MIKAZUKI MK.II',
       theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent)),
-      home: SpotifyDesignPage(),
+      home: HomePage(),
     );
   }
 }

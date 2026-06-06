@@ -8,9 +8,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  google_fonts: ^5.1.0 
+  google_fonts: ^8.1.0
   widgets_to_image: ^0.0.2
   palette_generator: ^0.3.3+4
+  universal_html: ^2.3.0
+  flutter_easyloading: ^3.0.5
 
 dev_dependencies:
   flutter_test:
@@ -19,3 +21,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/img/
