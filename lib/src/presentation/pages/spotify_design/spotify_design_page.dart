@@ -1,18 +1,17 @@
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 import 'package:universal_html/html.dart' as html;
 
+import '../../../data/data.dart';
+import '../../blocs/blocs.dart';
 import '../../widgets/widgets.dart';
-import 'spotify_design_form_page.dart';
 
 class SpotifyDesignPage extends StatefulWidget {
-  final KeychainDesignData designData;
-  const SpotifyDesignPage({super.key, required this.designData});
+  const SpotifyDesignPage({super.key});
 
   @override
   State<SpotifyDesignPage> createState() => _SpotifyDesignPageState();
@@ -72,140 +71,153 @@ class _SpotifyDesignPageState extends State<SpotifyDesignPage> {
 
   @override
   Widget build(BuildContext context) {
-    double designWidth = 320;
-    double designHeight = 490;
+    final double designWidth = 320;
+    final double designHeight = 490;
 
-    return Stack(
-      alignment: AlignmentDirectional.center,
-      children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: WidgetsToImage(
-            controller: imageController,
-            child: Stack(
-              alignment: AlignmentDirectional.center,
-              children: [
-                Padding(
-                  padding:
-                      isKeychainDesign ? EdgeInsets.only(top: 290.0, right: 46, left: 16, bottom: 32) : EdgeInsets.zero,
-                  child: Container(
-                    height: designHeight,
-                    width: designWidth,
-                    decoration: BoxDecoration(
-                      color: widget.designData.dominantColor ?? Colors.white,
-                      border:
+    return BlocBuilder<SpotifyDesignBloc, SpotifyDesignState>(
+      builder: (context, state) {
+        KeychainDesignData? activeDesign = state.activeDesign;
+        if (activeDesign == null || (activeDesign.coverUrl).isEmpty) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Icon(Icons.wallpaper), SizedBox(height: 20), Text('No Active Design')],
+          );
+        }
+        return Stack(
+          alignment: AlignmentDirectional.center,
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: WidgetsToImage(
+                controller: imageController,
+                child: Stack(
+                  alignment: AlignmentDirectional.center,
+                  children: [
+                    Padding(
+                      padding:
                           isKeychainDesign
-                              ? Border.all(
-                                width: 16,
-                                strokeAlign: BorderSide.strokeAlignOutside,
-                                color: const Color.fromARGB(255, 210, 210, 210),
-                              )
-                              : null,
-                    ),
-                    child: Column(
-                      children: [
-                        ImageNetworkWidget(imageUrl: widget.designData.coverUrl),
-                        ImageNetworkWidget(
-                          imageUrl:
-                              'https://scannables.scdn.co/uri/plain/jpeg/${(widget.designData.dominantColor ?? Colors.white).toSpotifyColor}/${widget.designData.spotifyBarcodeBlack ? 'black' : 'white'}/640/spotify:track:${parseSpotifyUrl(widget.designData.spotifyUrl)}',
-                        ),
-                        SizedBox(
-                          height: 80 * (widget.designData.titleFontSize),
-                          child: FittedBox(
-                            fit: BoxFit.fitHeight,
-                            child: Text(
-                              widget.designData.title,
-                              style: TextStyle(
-                                color: widget.designData.textColor ?? Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 80 * (widget.designData.artistFontSize),
-                          child: FittedBox(
-                            fit: BoxFit.fitHeight,
-                            child: Text(
-                              widget.designData.artist,
-                              style: GoogleFonts.bebasNeue(
-                                color: widget.designData.textColor ?? Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (isKeychainDesign)
-                  Positioned(
-                    top: 248,
-                    left: 164,
-                    child: Center(
+                              ? EdgeInsets.only(top: 290.0, right: 46, left: 16, bottom: 32)
+                              : EdgeInsets.zero,
                       child: Container(
-                        width: 24,
-                        height: 24,
+                        height: designHeight,
+                        width: designWidth,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            width: 14,
-                            strokeAlign: BorderSide.strokeAlignOutside,
-                            color: const Color.fromARGB(255, 210, 210, 210),
-                          ),
+                          color: activeDesign.dominantColor ?? Colors.white,
+                          border:
+                              isKeychainDesign
+                                  ? Border.all(
+                                    width: 16,
+                                    strokeAlign: BorderSide.strokeAlignOutside,
+                                    color: const Color.fromARGB(255, 210, 210, 210),
+                                  )
+                                  : null,
+                        ),
+                        child: Column(
+                          children: [
+                            ImageNetworkWidget(imageUrl: activeDesign.coverUrl),
+                            ImageNetworkWidget(
+                              imageUrl:
+                                  'https://scannables.scdn.co/uri/plain/jpeg/${(activeDesign.dominantColor ?? Colors.white).toSpotifyColor}/${activeDesign.spotifyBarcodeBlack ? 'black' : 'white'}/640/spotify:track:${parseSpotifyUrl(activeDesign.spotifyUrl)}',
+                            ),
+                            SizedBox(
+                              height: 80 * (activeDesign.titleFontSize),
+                              child: FittedBox(
+                                fit: BoxFit.fitHeight,
+                                child: Text(
+                                  activeDesign.title,
+                                  style: TextStyle(
+                                    color: activeDesign.textColor ?? Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 80 * (activeDesign.artistFontSize),
+                              child: FittedBox(
+                                fit: BoxFit.fitHeight,
+                                child: Text(
+                                  activeDesign.artist,
+                                  style: GoogleFonts.bebasNeue(
+                                    color: activeDesign.textColor ?? Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                if (isKeychainDesign)
-                  Positioned(
-                    left: 136,
-                    top: 10,
-                    child: ImageAssetWidget(width: 260, height: 260, path: 'assets/img/keychain_ring.png'),
-                  ),
-              ],
+                    if (isKeychainDesign)
+                      Positioned(
+                        top: 248,
+                        left: 164,
+                        child: Center(
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                width: 14,
+                                strokeAlign: BorderSide.strokeAlignOutside,
+                                color: const Color.fromARGB(255, 210, 210, 210),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (isKeychainDesign)
+                      Positioned(
+                        left: 136,
+                        top: 10,
+                        child: ImageAssetWidget(width: 260, height: 260, path: 'assets/img/keychain_ring.png'),
+                      ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ),
-        Positioned(
-          top: 0,
-          bottom: 0,
-          right: 20,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                onPressed: () async {
-                  setState(() {
-                    isKeychainDesign = !isKeychainDesign;
-                  });
-                },
-                icon: Icon(isKeychainDesign ? Icons.anchor : Icons.account_box_rounded),
+            Positioned(
+              top: 0,
+              bottom: 0,
+              right: 20,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      setState(() {
+                        isKeychainDesign = !isKeychainDesign;
+                      });
+                    },
+                    icon: Icon(isKeychainDesign ? Icons.anchor : Icons.account_box_rounded),
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      EasyLoading.show(status: 'Downloading...');
+                      final result = await imageController.capture();
+                      if (result != null) {
+                        await saveImage(DateTime.now().millisecondsSinceEpoch.toString(), result);
+                      }
+                      EasyLoading.dismiss();
+                      showSnackbar('Downloaded');
+                    },
+                    icon: Icon(Icons.download),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      _showLogs(activeDesign.toString());
+                    },
+                    icon: Icon(Icons.list_alt),
+                  ),
+                  SizedBox(height: 20),
+                ],
               ),
-              IconButton(
-                onPressed: () async {
-                  EasyLoading.show(status: 'Downloading...');
-                  final result = await imageController.capture();
-                  if (result != null) {
-                    await saveImage(DateTime.now().millisecondsSinceEpoch.toString(), result);
-                  }
-                  EasyLoading.dismiss();
-                  showSnackbar('Downloaded');
-                },
-                icon: Icon(Icons.download),
-              ),
-              IconButton(
-                onPressed: () {
-                  _showLogs('LOGSSSS');
-                },
-                icon: Icon(Icons.list_alt),
-              ),
-              SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -217,7 +229,7 @@ class _SpotifyDesignPageState extends State<SpotifyDesignPage> {
           contentPadding: const EdgeInsets.fromLTRB(20.0, 12.0, 20.0, 16.0),
           title: const Text('Details'),
           children: <Widget>[
-            Text(widget.designData.toString()),
+            Text(logs),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();

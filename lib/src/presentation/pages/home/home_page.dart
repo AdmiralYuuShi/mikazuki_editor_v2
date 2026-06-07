@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../blocs/blocs.dart';
 import '../product/product_form_page.dart';
 import '../product/product_list_page.dart';
 import '../spotify_design/spotify_design_form_page.dart';
@@ -37,20 +39,19 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   PrimaryPageList selectedPage = PrimaryPageList.productList;
   SecondaryPageList? selectedSecondPage;
-  late KeychainDesignData activeDesignData;
 
   @override
   void initState() {
-    activeDesignData = KeychainDesignData.init().copyWith(
-      title: '泥濘鳴鳴',
-      artist: 'CoMETIK',
-      spotifyUrl: 'https://open.spotify.com/track/6liJqMNGkVPJMjmwEjkrpB',
-      youtubeUrl: 'https://music.youtube.com/watch?v=CuRIuFRD1zI&si=Qjc_MzwyDBY4bZ2g',
-      coverUrl: 'https://i.scdn.co/image/ab67616d0000b27382a2b6bdfbcc2dbf29ab3748',
-      titleFontSize: 0.5,
-      artistFontSize: 0.5,
-      dominantColor: HexColor.toColor('ffdde6ec'),
-    );
+    // activeDesignData = KeychainDesignData.init().copyWith(
+    //   title: '泥濘鳴鳴',
+    //   artist: 'CoMETIK',
+    //   spotifyUrl: 'https://open.spotify.com/track/6liJqMNGkVPJMjmwEjkrpB',
+    //   youtubeUrl: 'https://music.youtube.com/watch?v=CuRIuFRD1zI&si=Qjc_MzwyDBY4bZ2g',
+    //   coverUrl: 'https://i.scdn.co/image/ab67616d0000b27382a2b6bdfbcc2dbf29ab3748',
+    //   titleFontSize: 0.5,
+    //   artistFontSize: 0.5,
+    //   dominantColor: HexColor.toColor('ffdde6ec'),
+    // );
     super.initState();
   }
 
@@ -84,6 +85,7 @@ class _HomePageState extends State<HomePage> {
                                         case PrimaryPageList.productList:
                                           selectedSecondPage = null;
                                         case PrimaryPageList.spotifyDesign:
+                                          context.read<SpotifyDesignBloc>().add(SpotifyDesignEvent.initData());
                                           selectedSecondPage = SecondaryPageList.spotifyDesignForm;
                                           break;
                                         default:
@@ -107,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                   });
                 },
               ),
-              PrimaryPageList.spotifyDesign => SpotifyDesignPage(designData: activeDesignData),
+              PrimaryPageList.spotifyDesign => SpotifyDesignPage(),
               _ => SizedBox(),
             },
           ),
@@ -119,14 +121,7 @@ class _HomePageState extends State<HomePage> {
                 height: MediaQuery.of(context).size.height,
                 child: switch (selectedSecondPage) {
                   SecondaryPageList.productForm => ProductFormPage(),
-                  SecondaryPageList.spotifyDesignForm => SpotifyDesignFormPage(
-                    initData: activeDesignData,
-                    onUpdate: (KeychainDesignData data) {
-                      setState(() {
-                        activeDesignData = data;
-                      });
-                    },
-                  ),
+                  SecondaryPageList.spotifyDesignForm => SpotifyDesignFormPage(),
                   _ => SizedBox(),
                 },
               ),
