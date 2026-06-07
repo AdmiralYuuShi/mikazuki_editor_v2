@@ -21,6 +21,8 @@ class SpotifyDesignPage extends StatefulWidget {
 class _SpotifyDesignPageState extends State<SpotifyDesignPage> {
   WidgetsToImageController imageController = WidgetsToImageController();
 
+  bool isKeychainDesign = false;
+
   Future<void> saveImage(String? filename, Uint8List bytes) async {
     if (kIsWeb) {
       final blob = html.Blob([bytes]);
@@ -84,17 +86,21 @@ class _SpotifyDesignPageState extends State<SpotifyDesignPage> {
               alignment: AlignmentDirectional.center,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(top: 290.0, right: 46, left: 16, bottom: 32),
+                  padding:
+                      isKeychainDesign ? EdgeInsets.only(top: 290.0, right: 46, left: 16, bottom: 32) : EdgeInsets.zero,
                   child: Container(
                     height: designHeight,
                     width: designWidth,
                     decoration: BoxDecoration(
                       color: widget.designData.dominantColor ?? Colors.white,
-                      border: Border.all(
-                        width: 16,
-                        strokeAlign: BorderSide.strokeAlignOutside,
-                        color: const Color.fromARGB(255, 210, 210, 210),
-                      ),
+                      border:
+                          isKeychainDesign
+                              ? Border.all(
+                                width: 16,
+                                strokeAlign: BorderSide.strokeAlignOutside,
+                                color: const Color.fromARGB(255, 210, 210, 210),
+                              )
+                              : null,
                     ),
                     child: Column(
                       children: [
@@ -133,38 +139,50 @@ class _SpotifyDesignPageState extends State<SpotifyDesignPage> {
                     ),
                   ),
                 ),
-                Positioned(
-                  top: 248,
-                  left: 164,
-                  child: Center(
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          width: 14,
-                          strokeAlign: BorderSide.strokeAlignOutside,
-                          color: const Color.fromARGB(255, 210, 210, 210),
+                if (isKeychainDesign)
+                  Positioned(
+                    top: 248,
+                    left: 164,
+                    child: Center(
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            width: 14,
+                            strokeAlign: BorderSide.strokeAlignOutside,
+                            color: const Color.fromARGB(255, 210, 210, 210),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  left: 136,
-                  top: 10,
-                  child: ImageAssetWidget(width: 260, height: 260, path: 'assets/img/keychain_ring.png'),
-                ),
+                if (isKeychainDesign)
+                  Positioned(
+                    left: 136,
+                    top: 10,
+                    child: ImageAssetWidget(width: 260, height: 260, path: 'assets/img/keychain_ring.png'),
+                  ),
               ],
             ),
           ),
         ),
         Positioned(
+          top: 0,
           bottom: 0,
           right: 20,
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              IconButton(
+                onPressed: () async {
+                  setState(() {
+                    isKeychainDesign = !isKeychainDesign;
+                  });
+                },
+                icon: Icon(isKeychainDesign ? Icons.anchor : Icons.account_box_rounded),
+              ),
               IconButton(
                 onPressed: () async {
                   EasyLoading.show(status: 'Downloading...');
